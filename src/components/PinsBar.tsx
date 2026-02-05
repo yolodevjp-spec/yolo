@@ -1,34 +1,15 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useState } from "react";
 
-/**
- * YOLO PinsBar - FINAL(想定) one-shot
- * ✅ ① PinsBar の高さを抑えて「タブ/記事が小さく見える問題」を解消
- * ✅ ② 3ピンは A方式（ベースライン=下端揃え）で統一
- * ✅ ③ 背景画像は“今は入れない”が、実装段階で入れる前提の器は作っておく（CSS差し替えだけでOK）
- * ✅ ④ 余計な箇所は触らない（PinsBarだけで完結）
- */
+const BAR_H = 64;
+const PAD_V = 6;
+const PAD_H = 16;
+const GAP = 28;
 
-/** ===== 調整パラメータ（ここだけ触ればOK） ===== */
-const FADE = { START: 40, END: 150 } as const;
-
-// 3ピン表示エリアの「背景込みの高さ」：大きすぎると記事が小さく見えるので抑える
-const BAR_H = 120; // ←まずはこれで“目立ちすぎ”を止める（必要なら 112〜128 で微調整）
-
-// ピンの最大表示高さ（ベースラインは下端揃え）
-const PIN_MAIN_H = 92; // 金（中央）
-const PIN_SIDE_H = 86; // 赤・青（少しだけ小さく）
-
-// ピン同士の間隔
-const GAP = 30;
-
-// タブとの上下間隔：詰めたいので上側余白は最小
-const PAD_TOP = 6;
-const PAD_BOTTOM = 10;
-
-// ほんの少しタブ側に寄せる（“断絶感”を消す）
-const PULL_UP = 4; // 0〜8 で調整（まずは4）
+const PIN_SIDE = 52;
+const PIN_MAIN = 62; // 52 * 1.2
 
 export default function PinsBar() {
   const [opacity, setOpacity] = useState(1);
@@ -36,8 +17,8 @@ export default function PinsBar() {
   useEffect(() => {
     const onScroll = () => {
       const y = window.scrollY;
-      const o = 1 - (y - FADE.START) / (FADE.END - FADE.START);
-      setOpacity(Math.max(0, Math.min(1, o)));
+      const o = Math.max(0, 1 - y / 150);
+      setOpacity(o);
     };
 
     onScroll();
@@ -48,85 +29,50 @@ export default function PinsBar() {
   return (
     <section
       aria-label="PinsBar"
-      className="relative w-full border-t border-white/35 border-b border-black/5"
+      className="relative z-30 w-full bg-white/55 border-t border-white/35 border-b border-black/5"
       style={{
-        // ① 高さを固定して、PinsBarが“主役”にならないように抑える
         height: BAR_H,
-        // タブとの間隔を詰める
-        marginTop: -PULL_UP,
-        // 透過感は維持（背景は後で入れる前提の器）
+        paddingTop: PAD_V,
+        paddingBottom: PAD_V,
+        paddingLeft: PAD_H,
+        paddingRight: PAD_H,
         opacity,
         transition: "opacity 80ms linear",
-        overflow: "hidden",
+        overflow: "visible",
       }}
     >
-      {/* ===== 背景レイヤー（今は画像入れない／後で差し替え） ===== */}
       <div
-        aria-hidden
-        className="absolute inset-0"
+        className="flex justify-center"
         style={{
-          // 今は画像なしでOK：うっすら“接地感”だけ作る
-          // 実装段階で背景画像を入れるときは ↓ を image に差し替えるだけ
-          // backgroundImage: "url(/pins/bg.jpg)",
-          // backgroundSize: "cover",
-          // backgroundPosition: "center",
-          background:
-            "linear-gradient(to bottom, rgba(255,255,255,0.85) 0%, rgba(245,245,245,0.55) 55%, rgba(255,255,255,0.85) 100%)",
-          filter: "saturate(1.02)",
-        }}
-      />
-
-      {/* ===== 3ピン（ベースライン下端揃え） ===== */}
-      <div
-        className="relative mx-auto flex items-end justify-center"
-        style={{
-          height: "100%",
-          paddingTop: PAD_TOP,
-          paddingBottom: PAD_BOTTOM,
           gap: GAP,
+          height: "100%",
+          alignItems: "center", // ← ここが最重要：はみ出しを作らない
+          overflow: "visible",
         }}
       >
-        {/* NEW */}
-        <img
+        <Image
           src="/pins/new.png"
           alt="新着"
-          draggable={false}
-          style={{
-            height: PIN_SIDE_H,
-            width: "auto",
-            display: "block",
-            // ② 下端揃え（A）
-            alignSelf: "flex-end",
-            userSelect: "none",
-          }}
+          width={PIN_SIDE}
+          height={PIN_SIDE}
+          style={{ height: PIN_SIDE, width: "auto", objectFit: "contain" }}
+          priority
         />
-
-        {/* OVER100K */}
-        <img
+        <Image
           src="/pins/over100k.png"
           alt="10万+"
-          draggable={false}
-          style={{
-            height: PIN_MAIN_H,
-            width: "auto",
-            display: "block",
-            alignSelf: "flex-end",
-            userSelect: "none",
-          }}
+          width={PIN_MAIN}
+          height={PIN_MAIN}
+          style={{ height: PIN_MAIN, width: "auto", objectFit: "contain" }}
+          priority
         />
-
-        {/* VIBE */}
-        <img
+        <Image
           src="/pins/vibe.png"
           alt="空気感"
-          draggable={false}
-          style={{
-            height: PIN_SIDE_H,
-            width: "auto",
-            display: "block",
-            alignSelf: "flex-end",
-            userSelect: "none",
-          }}
+          width={PIN_SIDE}
+          height={PIN_SIDE}
+          style={{ height: PIN_SIDE, width: "auto", objectFit: "contain" }}
+          priority
         />
       </div>
     </section>
