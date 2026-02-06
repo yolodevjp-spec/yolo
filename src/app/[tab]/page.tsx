@@ -14,8 +14,14 @@ const TABS = [
   { label: "昨日のまとめ", slug: "yesterday" },
 ];
 
-export default function TabPage({ params }: { params: { tab: string } }) {
-  const tab = params.tab ?? "trend";
+export default async function TabPage({
+  params,
+}: {
+  params: Promise<{ tab: string }>;
+}) {
+  const { tab } = await params;
+  const validTabs = TABS.map((t) => t.slug);
+  const activeTab = tab && validTabs.includes(tab) ? tab : "trend";
 
   return (
     <div className="min-h-screen bg-white">
@@ -30,7 +36,7 @@ export default function TabPage({ params }: { params: { tab: string } }) {
       <nav className="sticky top-0 z-20 bg-white border-b border-black/5">
         <div className="flex gap-4 overflow-x-auto whitespace-nowrap px-[16px] py-[10px]">
           {TABS.map((t) => {
-            const active = tab === t.slug;
+            const active = activeTab === t.slug;
             return (
               <Link
                 key={t.slug}
@@ -59,7 +65,7 @@ export default function TabPage({ params }: { params: { tab: string } }) {
 
       {/* Feed */}
       <main className="px-[16px] py-[12px]">
-        <FeedShell tab={tab} />
+        <FeedShell tab={activeTab} />
       </main>
     </div>
   );
